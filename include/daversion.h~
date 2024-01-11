@@ -1,0 +1,218 @@
+#ifndef _DA_VERSION_H_
+#define _DA_VERSION_H_
+
+
+#define	BUILD_MODEL_VRHD_PAI_R					1
+#define	BUILD_MODEL_VRHD_SECURITY			2
+#define	BUILD_MODEL_VRHD_V1V2					3
+
+//#define	BUILD_MODEL 			BUILD_MODEL_VRHD_PAI_R
+#define	BUILD_MODEL 			BUILD_MODEL_VRHD_SECURITY
+//#define	BUILD_MODEL 			BUILD_MODEL_VRHD_V1V2
+
+#define ENABLE_BOARD_CHECK	0
+#define DEF_PULSE_DEBUG		1
+
+#define DEF_BOARD_WITHOUT_DCDC		1 	// new board, without dcdc
+#define DEF_SUB_MICOM_USE					1
+
+#define DEF_PAI_R_DATA_SAVE		1
+#define DEF_PAI_R_SPD_INTERVAL	500
+
+#if ENABLE_BOARD_CHECK
+#define 	DA_MODEL_NAME		"DA200 S_CHK"
+#else
+#define 	DA_MODEL_NAME		"DA200 S"
+#endif
+
+#ifdef HTTPD_EMBEDDED
+#define DEF_DEBUG_SERIAL_LOG_FILE_SAVE 1
+#else
+#define DEF_DEBUG_SERIAL_LOG_FILE_SAVE 0
+#endif
+
+#define __FW_VERSION__			"0.0.23_720p"
+
+#if (BUILD_MODEL == BUILD_MODEL_VRHD_PAI_R)
+#define	DA_FIRMWARE_VERSION	"VRHD/" __FW_VERSION__
+
+#define ENABLE_AVI_SCRAMBLING 0
+
+ #define DEF_30FIX_FRAME		0
+#define REAR_1080P 	0
+#define REAR_NTSC		0
+
+#elif (BUILD_MODEL == BUILD_MODEL_VRHD_SECURITY)
+#define DA_FIRMWARE_VERSION	"VRSE/" __FW_VERSION__
+
+#define DEF_VRSE_SECURITY_FILE_EXT		"fvfs"		//firstview file system
+#define DEF_VRSE_FVFS_HEADER		"FVFS   CDR MOVIE"
+#define ENABLE_AVI_SCRAMBLING 1
+//#define AVI_SCRAMBLE_CODES    "0x6461746563680635b5695b47d888d1590934138834535c9f63b6907357e724eb"
+#define AVI_SCRAMBLE_CODES    "0x000000"
+
+ #define DEF_30FIX_FRAME		0
+#define REAR_1080P 	0
+#define REAR_NTSC		0
+
+#elif (BUILD_MODEL == BUILD_MODEL_VRHD_V1V2)
+#define	DA_FIRMWARE_VERSION	"VRVX/" __FW_VERSION__
+
+#define ENABLE_AVI_SCRAMBLING 0
+
+ #define DEF_30FIX_FRAME		1
+#define REAR_1080P 	0
+#define REAR_NTSC		1
+#endif
+
+
+//////////////////////////////////////////////////////
+//Revision Note
+/*
+0.0.23
+1) G-Sensor 감도 둔감하게(3단계 쉬프트) 변경, Z축은 더 둔감하게 수정
+2) disable dynamic-qp-range (min-qp : H 33, M 37, L 41)
+
+0.0.22
+ 1) INPUT1, 2 Port로 50ms ~ 1000ms 동안만 High 신호가 입력되는 경우 EVENT 녹화(INPUT1 = "A", INPUT2 = "B")
+ 2) RPM 추가
+ 3) Speed Limit 추가 (20km/h 이상 시 High)
+ 4) RPM, Speed Limit 관련 setup.xm 설정 추가
+ 	<item value="4" id="EngineCylinders" />
+    <item value="20" id="SpeedLimitValue" />
+    <item value="TRUE" id="OSDSpeed" />
+    <item value="TRUE" id="OSDRpm" />
+ 5) G-Sensor Event 감지기간 500 = > 200ms (속도 변화에 약간 둔감해짐)
+
+ 
+ 6) No64 서버에서 요청된 동영상 파일 다 업로드 하지 못한 경우 재기동 시 이어 업로드 하도록 수정
+ 7) No58 동일한 URL인 경우 재기동 시 driverecorder POST skip 하도록 수정
+ 8) No75 (다른 제품에 사용하던 SD카드를 연결한 경우)서버에서 요청한 동영상의 autoid를 POST하지 않는 문제 수정
+ 9) updateTethering 정보 10개까지 설정 및 동작하도록 수정
+
+ // No74 뷰어 최소 후 파일 클릭으로 실행 후 최대화 시 화면 에러 수정 <== 뷰어에서 수정
+ // No 78 뷰어 후방 화면 확대 후 최대화 시 화면 겹치는 문제 수정 <== 뷰어에서 수정
+ // No79 Video Osd Speed와 Viewer Speed 표시에 차이가 발생하는 문제 수정 <== 뷰어에서 수정
+
+ //20201027
+ ) 파일확장자 ".fvfs" 적용 및 avi header 정보 변경 (SECURITY 모드 버전 정보는 "VRSE 0.0.22"로 적용 됨)
+ ) VideoQuality : HIGH (80M, 1080p/720p), MIDDLE(40M, 720p/720p), LOW(24M, 720p/720p) 적용
+ 
+0.0.21
+ 1) No.58 [A안]에서 url 시작을 "/driverecorder/..." 로 하지 않으면 오류가 발생하는 문제 수정
+ 	url 주소 유효성 검사에서 "/driverecorder" 문자를 확인하는 부분을 제거 하였습니다.
+
+0.0.20
+ 1) No.46 문제 수정 ( 1Km 이상 주행, 10분 이상 연속 동작 등의 조건에서 발생 할 수 있는 버그가 발견되어 수정하였습니다.)
+ 2) N0.54 SD Card가 교체되어도 로컬동영상자동ID는 계속 누적 적용
+ 	- SD Card 교체 시 과거 녹화된 파일은 autoid가 맞지 않아 status 값은 90을 전송 (90:오류:블랙 박스에 해당 데이터는 더 이상 존재하지 않는다)
+
+ 3) N0.57 thumbnail 빠지는 문제 개선 (증산 재현이 안 되어 관련 부분 보완 프로그램을 추가함)
+ 4) No.58 문제 수정 (FW갱신으로 서버 변경 시 SD의 api_list 삭제), A안 적용
+   	sd card setup.xml(값이 없으면 FW 적용 값 사용)
+ 	<item value="mar-i.com" id="CloudServerName" />
+    <item value="/driverecorder/api_driverecorder/firstview/1/insert_driverecorder.php" id="CloudServerApiUrl" />
+    <item value="80" id="CloudServerPort" />
+ 5) No.59 pai-r movie filesize Kbyte => byte 수정
+ 6) Event Recording 10 + 20 => 10 + 10으로 수정
+ 7) 전방 카메라 osd "[1]" 부분 삭제, 후방 카메라 osd "[2] 2020/10/15 19:07:31" 전체 삭제
+ 8) OSDSpeed config 추가 및 "TRUE" 시 전방 카메라 osd "000km/h" 표시
+ 
+0.0.19
+ 1)PC viewer에서 G-Sensor와 GPS 정보표시가 안 되는 문제 수정
+
+0.0.18
+ 1) GalaxyS10 사용 시 서버로부터 들어오는 Gzip type file 처리 코드 추가
+ 2) SD Card의 setup.xml의 SSID 반영하지 않도록 수정 (44이슈)
+ 3) insert_operation 응답 시 now_datetime VRHD에 적용(서버 시간으로 VRHD 시간을 맞춤)
+ 4) 20200815VRHD音?リスト.xlsx 문서의 2, 3번 내용 적용
+ 	2번. 음성 멘트 변경 "Wi-Fi 설정에 실패했습니다. Wi-Fi 설정 모드입니다" ==> "통신 오류, 네트워크 설정을 확인하십시오."
+ 	3번. API에서 드라 레코의 볼륨 변경 시 음계 조절 방식 적용(파일 : WAVE1 ~ WAVE5.wav)
+ 5) 장시간 에이징 시 메모리 누수 현상 수정
+ 6) G-Sensor 감도 수정 0.1 ~ 1.1g (default value 2 => 5 변경)
+ 
+0.0.17
+ 1) pulse 입력 시 user data 표시가 40초정도만 되는 문제 수정 (avi-strd-size-max size 12000 => 48000으로 수정)
+ 2) Pai-r 경로 저장 시 UUID backup
+ 3) WiFi Module 연결 후 Aging 시 Segmentation fault 후 rebooting 문제 수정
+ 
+0.0.16
+ 1) GPS 정보 저장 시 G$ Header 없이 저장되어 뷰어에서 GPS정보를 표시 못하는 문제 수정
+ 2) Pai-r 관련 데이터 저장용 파일 최대 사이즈로 파일 생성(기존 조금씩 저장하던 방식보다 안정적임)
+ 3) Pai-r 4-05 getUpdateLog POST API에 data_type 변수 추가
+ 4) Pai-r API의 insert_list_and_reques의 latitude, longitude value degree unit으로 수정 (ddmm.mmmm => dd.dddddd)
+ 5) 후방 카메라 AHD 1080p 방식 인식하도록 수정
+ 
+0.0.15
+ 1) 카드 미삽입 경고음(3회 반복_5s 주기) 울리고 모든 LED Off하도록 수정
+ 2) power off 시 모든 LED off하도록 수정
+ 
+0.0.14
+ 1) sub mcu code add
+ 2) API 4-8 getSystemLog str_day_ago, how_many_days_ago 사양 문서에 맞게 수정
+ 3) API 4-4 getMovieList의 반환 값 중 hash 값을 hash path로 변경
+ 
+0.0.13
+ 1) getSystemLog API Json format 수정
+ 2) updateConfig의 Speaker Level 설정 시 "댕동" 사운드 출력
+ 3) 1080p 녹화 모드 썸네일 캡쳐이미지 480x270으로 수정
+ 4) API 501(insert driverecorder) 통신은 테더링 설정 후 최초 1회만 하도록 수정
+ 5) L,R 깜박이 On후 2초 체터링 적용
+ 6) VRHD 뒤집어 설치하는 경우 전방 카메라 180도 반전
+
+
+0.0.12
+ 1) API 4-04 getMovieList 느린 응답 개선 및 일부 파일 md5 hash error 수정
+  LOCATION_QUEUE_MAX_COUNT 2014 => 2048
+ 2) 주행 중엔 테더링 설정을 위해 AP모드로 전환하지 않도록 수정
+ 3) API 4-08 getSystemLog type, day_ago 적용
+ 4) front image sensor IMX307 하이페리온 튜닝 값 적용
+ 5) max jpg image capture size 640x360 => 1920x1080으로 수정
+ 6) API 4-10 updateConfig resolution_cam0, resolution_cam1 추가
+ 
+0.0.11
+ 1) PAI-R HTTP Protocol : getSystemLog, getConfig, updateConfig added
+ 
+0.0.10
+ 1) PAI-R HTTP Protocol : getSystem added
+ 
+0.0.9
+ 1) PAI-R HTTP Protocol : getUpdateLog added
+ 
+0.0.8
+ 1) PAI-R HTTP Protocol : Movie POST added
+ 
+0.0.7
+ 1) PAI-R HTTP Protocol Add
+ 
+0.0.6
+ 1) 리어카메라 제거후 다시 연결 시 2Ch 녹화로 전환 안 되는 문제 수정
+
+0.0.5
+ 1) 1Ch Aging 시 2Ch 자동전환 문제 수정
+ 2) GPS User Data 추가 
+ 3) User Data space 부족하여 키움
+ 4) GPS Timezone 문제 수정
+ 
+0.0.4
+ 1) sdk oasis-v2.2.29-offs-3.11.22 적용
+ 2) gps invalid signal 시 led 동작 bug 수정
+ 
+0.0.3
+ 1) sdk oasis-v2.2.19-offs-3.11.14 적용
+
+0.0.2
+ 1) led bug fixed
+  	전원 인가 및 10초 이후 부팅 시와 이벤트 시 교차 점멸, ( 업데이트 시에는 동시 점멸 : 추후 적용 예정)
+ 2) Input1 : High 신호 입력될 동안 계속 ‘G’ 파일 생성 / Low 신호일 때 ‘I’ 파일 생성
+    Input1, Input2 : 동시 High 신호 입력될 동안 계속 ‘H’ 파일 생성 
+ 3) SD 볼륨 Firstview -> SD 로 변경
+ 4) video output과 uart debug message에 pulse data 확인 가능하도록 text추가
+
+ 0.0.1
+ 1) led control add
+ 
+0.0.0 Initial Version
+*/
+
+#endif // _DA_VERSION_H_
