@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../datech_i3_eeprom_writer"
+		},
+		{
+			"path": "../datech_i3_httpd_recorder"
+		},
+		{
+			"path": "../datech_i3_pai_r_httpd"
+		},
+		{
+			"path": "../datech_i3_surveillant"
+		}
+	]
+}
