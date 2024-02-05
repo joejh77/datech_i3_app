@@ -247,8 +247,11 @@ SD_FORMAT:
 #if ENABLE_DATA_LOG
 		sprintf(szCmd, "rm -rf %s", DEF_DATA_LOG_DIR);
 		system(szCmd);
+#ifdef Horiba//horiba
+		sprintf(szCmd, "rm -rf %s", DEF_DATA_LOG_TMP_DIR);
+		system(szCmd);
 #endif
-
+#endif
 		msleep(3000);
 #if 0
 		do{

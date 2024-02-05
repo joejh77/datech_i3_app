@@ -11,7 +11,7 @@
 //#include "tinyxml.h"
 #include "data_log.h"
 
-#define DBG_DATA_LOG_FUNC 	0 // DBG_MSG
+#define DBG_DATA_LOG_FUNC 	1 // DBG_MSG
 #define DBG_DATA_LOG_ERR  		DBG_ERR
 #define DBG_DATA_LOG_WRN		DBG_WRN
 
@@ -172,8 +172,107 @@ int CDatalog::save_log(bool shutdown)
 	return log_count;
 }
 
+///////////////////////////////////////////horiba
+int CDatalog::Horiba_Header_Creation(time_t time)
+{
+	int ret;
+	u32 size = 64 * 1024;
+	char data_path[256];
+	struct tm tm_t;
+	int length;
+	
+	char* dummy = new char[size];
+	memset((void *)dummy, 0x00, size);
+	fwrite((void *)dummy, 1, size, m_fp);
+
+	fseek( m_fp, 0, SEEK_END );
+	length = ftell( m_fp );
+	fseek( m_fp, 0, SEEK_SET );
+
+	dbg_printf(DBG_DATA_LOG_FUNC, "%s file created( %d : %d KB).\n", data_path, DATALOG_FILE_SIZE / 1024, length/1024);
+
+	localtime_r(&time, &tm_t);
+
+	m_log_position = sprintf(dummy, "H01,FWVersion,\"%s\"\r\n", __FW_VERSION__ );
+	m_log_position += sprintf(&dummy[m_log_position], "H02,SerialNumber,\"%u\"\r\n", m_serial_number );
+	m_log_position += sprintf(&dummy[m_log_position], "H03,Date,\"%04d-%02d-%02d\"\r\n", tm_t.tm_year + 1900, tm_t.tm_mon + 1, tm_t.tm_mday );
+	m_log_position += sprintf(&dummy[m_log_position], "H04,DriverCode,\"%s\"\r\n", m_driver_code );
+#ifdef ENABLE_DATA_LOG_UNI
+	m_log_position += sprintf(&dummy[m_log_position], "D01,Date,Time,GpsConnectionState,GpsSignalState,Latitude,Longitude,Speed(Km/h),Distance(Km),RPM,GS_Event,GS_X,GS_Y,GS_Z,Brake,Winker_L,Winker_R,InputTrigger1,InputTrigger2,Volt" );
+#else
+	m_log_position += sprintf(&dummy[m_log_position], "D01,Date,Time,OperatingTime,GpsConnectionState,GpsSignalState,Latitude,Longitude,Speed(Km/h),Distance(Km),RPM,GS_Event,GS_X,GS_Y,GS_Z,Brake,Winker_L,Winker_R,InputTrigger1,InputTrigger2,Volt,Cause,Difference" );
+#endif
+#ifdef DEF_SAFE_DRIVING_MONITORING
+	m_log_position += sprintf(&dummy[m_log_position], ",Highway\r\n");
+#else
+	m_log_position += sprintf(&dummy[m_log_position], "\r\n");
+#endif
+
+	ret = fwrite((void *)dummy, 1, strlen(dummy) + 1, m_fp);
+
+	dbg_printf(DBG_DATA_LOG_FUNC, "%s() :  %d (%d : %s) \n", __func__, m_log_position, ret, dummy);
+
+}
+int CDatalog::Dummy_File_Move(char *data_path)
+{
+	int dummy_file_count;
+	
+	for(dummy_file_count = 0; dummy_file_count < 30; dummy_file_count++){
+		char tmp_path[256]; 
+		
+		sprintf(tmp_path, DEF_DATA_LOG_TMP_DIR "/%d.tmp", dummy_file_count);
+		if(access(tmp_path, R_OK) == 0){
+			char mvCmd[256];
+
+			sprintf(mvCmd, "mv %s %s", tmp_path, data_path);
+			system(mvCmd);
+		
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+int CDatalog::Dummy_File_Make(void)
+{
+	int dummy_file_count;		
+
+	for(dummy_file_count = 0; dummy_file_count < 30; dummy_file_count++){
+		char tmp_path[256]; 
+		
+		sprintf(tmp_path, DEF_DATA_LOG_TMP_DIR "/%d.tmp", dummy_file_count);
+		
+		FILE *t_fp = fopen(tmp_path, "wb"); 	
+		if(t_fp) {
+			u32 size = DATALOG_FILE_SIZE;
+		
+			char* dummy = new char[size];
+			memset((void *)dummy, 0x00, size);
+			fwrite((void *)dummy, 1, size, t_fp);
+
+			delete [] dummy;
+			
+			fclose(t_fp);
+			dbg_printf(DBG_DATA_LOG_FUNC, "%s saved %d KB\n", DEF_DATA_LOG_TMP_DIR, size / 1024);
+		}else{
+			char szCmd[256];
+
+			sprintf(szCmd, "rm %s", tmp_path);
+			system(szCmd);
+
+			dbg_printf(DBG_DATA_LOG_FUNC, "%s file make failed\n", tmp_path);
+		
+		}
+		
+	}
+	return 0;
+}
+/////////////////////////////////////////////////
+
 int CDatalog::init(time_t time)
 {
+
 	u32 sd_size = 0;
 	
 	if(m_is_init)
@@ -189,9 +288,26 @@ int CDatalog::init(time_t time)
 	struct tm last_log_file_tm_t;
 	
 	const char * data_dir = DEF_DATA_LOG_DIR;
+	const char * tmp_dir = DEF_DATA_LOG_TMP_DIR; //horiba
 	char data_path[256];
+	char tmp_path[256];
+	char oldest_file[512];
+	u32	t_oldest_log_file_no = 0xffffffff;
+	
 	struct tm tm_t;
 	int length;
+
+#ifdef Horiba	///////////////////////////////////////////horiba
+	if (access(tmp_dir, R_OK) != 0){
+		char szCmd[128];
+		sprintf(szCmd, "mkdir %s", tmp_dir);
+		system(szCmd);
+		
+		dbg_printf(DBG_DATA_LOG_FUNC, "%s() : %s \n", __func__, szCmd);
+		Dummy_File_Make();
+	}
+
+#endif		/////////////////////////////////////////////////
 
 	if ( access(data_dir, R_OK ) != 0) {
 		char szCmd[128];
@@ -204,9 +320,7 @@ int CDatalog::init(time_t time)
 		int i, file_list_size;
 		char file_list[1024 * 10];
 		char file_name[512];
-		char oldest_file[512];
 		int file_name_length = 0;
-		u32	t_oldest_log_file_no = 0;
 		
 		m_file_count = 0;
 		m_file_serial_no = 0;
@@ -261,7 +375,9 @@ int CDatalog::init(time_t time)
 				file_name_length = 0;
 			}
 		}
+#ifdef Horiba
 
+#else
 		if(m_file_count >= DATALOG_FILE_MAX_COUNT){
 			char szCmd[512];
 
@@ -272,6 +388,7 @@ int CDatalog::init(time_t time)
 			dbg_printf(DBG_DATA_LOG_WRN, "%s() : Deleted oldest log file : %s \r\n", __func__, oldest_file);
 			m_file_count--;
 		}
+#endif
 	}
 
 	
@@ -285,12 +402,39 @@ int CDatalog::init(time_t time)
 	}
 	
 	sprintf(data_path, DEF_DATA_LOG_PATH_FMT, tm_t.tm_year + 1900, tm_t.tm_mon + 1, tm_t.tm_mday, m_file_serial_no);
+	
+#ifdef Horiba	/////////////////////////////////////test
+	if ( 0 != access(data_path, R_OK )) {
 
+		if(m_file_count >= DATALOG_FILE_MAX_COUNT){	/*&& t_oldest_log_file_no != 0xffffffff*/
+			char mvCmd[256];
+			char *ptr = strchr(oldest_file, '\n');
 
-	if ( 0 != access(data_path, R_OK ) ) {		// 파일이 없음
+			if(ptr != NULL)
+				ptr[0] = 0;
+
+			sprintf(mvCmd, "mv %s/%s %s", DEF_DATA_LOG_DIR, oldest_file, data_path);
+			system(mvCmd);
+			dbg_printf(DBG_DATA_LOG_WRN, "%s() : Rename oldest[%s] \r\n", __func__, mvCmd);	
+		}
+		else
+			Dummy_File_Move(data_path);	
+		
+		if( 0 != access(data_path, R_OK ))
+			m_fp = fopen(data_path, "wb");
+		else
+			m_fp = fopen(data_path, "rb+");
+		
+		Horiba_Header_Creation(time);
+		m_file_count++;
+	
+	}
+#else	/////////////////////////////////////standard
+	if ( 0 != access(data_path, R_OK ) ) {
 		m_fp = fopen(data_path, "wb");
 		m_file_count++;
 	}
+#endif
 	else
 		m_fp = fopen(data_path, "rb+");
 
