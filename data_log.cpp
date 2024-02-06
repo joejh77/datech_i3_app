@@ -11,7 +11,7 @@
 //#include "tinyxml.h"
 #include "data_log.h"
 
-#define DBG_DATA_LOG_FUNC 	1 // DBG_MSG
+#define DBG_DATA_LOG_FUNC 	0 // DBG_MSG
 #define DBG_DATA_LOG_ERR  		DBG_ERR
 #define DBG_DATA_LOG_WRN		DBG_WRN
 
@@ -290,23 +290,25 @@ int CDatalog::init(time_t time)
 	const char * data_dir = DEF_DATA_LOG_DIR;
 	const char * tmp_dir = DEF_DATA_LOG_TMP_DIR; //horiba
 	char data_path[256];
-	char tmp_path[256];
 	char oldest_file[512];
 	u32	t_oldest_log_file_no = 0xffffffff;
+	int dummy_file_list_size;
+	char dummy_file_list[1024 * 10];
 	
 	struct tm tm_t;
 	int length;
 
 #ifdef Horiba	///////////////////////////////////////////horiba
 	if (access(tmp_dir, R_OK) != 0){
-		char szCmd[128];
+		char szCmd[128];		
 		sprintf(szCmd, "mkdir %s", tmp_dir);
 		system(szCmd);
 		
 		dbg_printf(DBG_DATA_LOG_FUNC, "%s() : %s \n", __func__, szCmd);
 		Dummy_File_Make();
 	}
-
+	dummy_file_list_size = SB_Cat("ls -1 " DEF_DATA_LOG_TMP_DIR "\n", dummy_file_list, sizeof(dummy_file_list));
+	dbg_printf(DBG_DATA_LOG_FUNC, " %d \r\n%s\r\n", dummy_file_list_size, dummy_file_list);	
 #endif		/////////////////////////////////////////////////
 
 	if ( access(data_dir, R_OK ) != 0) {
@@ -405,8 +407,8 @@ int CDatalog::init(time_t time)
 	
 #ifdef Horiba	/////////////////////////////////////test
 	if ( 0 != access(data_path, R_OK )) {
-
-		if(m_file_count >= DATALOG_FILE_MAX_COUNT){	/*&& t_oldest_log_file_no != 0xffffffff*/
+		
+		if((m_file_count >= DATALOG_FILE_MAX_COUNT) || (dummy_file_list_size == 0)){
 			char mvCmd[256];
 			char *ptr = strchr(oldest_file, '\n');
 
@@ -420,10 +422,7 @@ int CDatalog::init(time_t time)
 		else
 			Dummy_File_Move(data_path);	
 		
-		if( 0 != access(data_path, R_OK ))
-			m_fp = fopen(data_path, "wb");
-		else
-			m_fp = fopen(data_path, "rb+");
+		m_fp = fopen(data_path, "rb+");
 		
 		Horiba_Header_Creation(time);
 		m_file_count++;
