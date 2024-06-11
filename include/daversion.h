@@ -8,13 +8,15 @@
 #define	BUILD_MODEL_VRHD_V1V2								4		//H:1080p, M:720p, L:720p/360p
 #define	BUILD_MODEL_VRHD_220S								5		//AC200 삭제, Pulse, digital IO 삭제
 #define BUILD_MODEL_VRHD_MMB_SERVER							6
+#define BUILD_MODEL_VRHD_SECURITY_FUTABA					7
 
 //#define	BUILD_MODEL 			BUILD_MODEL_VRHD_PAI_R
-//#define	BUILD_MODEL 			BUILD_MODEL_VRHD_MMB_SERVER
-#define	BUILD_MODEL 			BUILD_MODEL_VRHD_SECURITY
-//#define	BUILD_MODEL 			BUILD_MODEL_VRHD_SECURITY_REAR_1CH
+#define	BUILD_MODEL 			BUILD_MODEL_VRHD_MMB_SERVER			//MMB Server
+//#define	BUILD_MODEL 			BUILD_MODEL_VRHD_SECURITY				//NV2HD, VRHD Firstview Standard
+//#define	BUILD_MODEL 		BUILD_MODEL_VRHD_SECURITY_FUTABA				//NV2HD, VRHD Futaba safe monitoring
+//#define	BUILD_MODEL 			BUILD_MODEL_VRHD_SECURITY_REAR_1CH		//Osaka Gas_1ch
 //#define	BUILD_MODEL 			BUILD_MODEL_VRHD_V1V2
-//#define	BUILD_MODEL 			BUILD_MODEL_VRHD_220S
+//#define	BUILD_MODEL 			BUILD_MODEL_VRHD_220S					//NV1HD Firstview Standard
 
 #define USE_DA_PULSE  1
 
@@ -39,26 +41,26 @@
 #endif
 
 #ifdef HTTPD_EMBEDDED
-#define DEF_DEBUG_SERIAL_LOG_FILE_SAVE 1
+#define DEF_DEBUG_SERIAL_LOG_FILE_SAVE 	1
 #else
-#define DEF_DEBUG_SERIAL_LOG_FILE_SAVE 0
+#define DEF_DEBUG_SERIAL_LOG_FILE_SAVE 	0
 #endif
 
 
 
 #if (BUILD_MODEL == BUILD_MODEL_VRHD_PAI_R)
-#define __FW_VERSION__			"0.0.32"
-#define	DA_FIRMWARE_VERSION	"VRHD/" __FW_VERSION__
+#define __FW_VERSION__					"0.0.32"
+#define	DA_FIRMWARE_VERSION				"VRHD/" __FW_VERSION__
 
-#define ENABLE_AVI_SCRAMBLING 0
+#define ENABLE_AVI_SCRAMBLING 			0
 
 #define DEF_PAI_R_DATA_SAVE
 
 #define DEF_LOW_FRONT_720P
-#define DEF_30FIX_FRAME				0
-#define REAR_1080P 							0
-#define REAR_NTSC								0
-#define ENABLE_DATA_LOG	 			0
+#define DEF_30FIX_FRAME					0
+#define REAR_1080P 						0
+#define REAR_NTSC						0
+#define ENABLE_DATA_LOG	 				0
 
 #define DEF_SAFE_DRIVING_MONITORING
 #define DEF_OSAKAGAS_DATALOG
@@ -68,10 +70,10 @@
 #define DEF_NO_SOUND_NETWORK_CHECK //항상 AP모드로 동작하는 도델에 사용
 
 #elif (BUILD_MODEL == BUILD_MODEL_VRHD_MMB_SERVER)
-#define __FW_VERSION_MAJOR__			"02"
-#define __FW_VERSION_MINOR__			"02"
+#define __FW_VERSION_MAJOR__			"01"
+#define __FW_VERSION_MINOR__			"03"
 #define __FW_VERSION__ __FW_VERSION_MAJOR__ "." __FW_VERSION_MINOR__
-#define	DA_FIRMWARE_VERSION	"VRHD/" __FW_VERSION__
+#define	DA_FIRMWARE_VERSION				"VRHD/" __FW_VERSION__
 
 #define DEF_VRSE_SECURITY_FILE_EXT		"fvfs"		//firstview file system
 #define DEF_VRSE_FVFS_HEADER			"FVFS   CDR MOVIE"
@@ -92,79 +94,114 @@
 #define DEF_USB_LTE_MODEM_USE
 
 #define DEF_MMB_VER_2 	// Ryunni
-#define SOS_CHECK		// Joe_test	SOS BT check
+//#define SOS_CHECK		// Joe	SOS BT check
 
 #define DEF_MMB_SERVER
 #define DEF_MMB_MAX_EVENTDATA_COUNT		1
-#elif (BUILD_MODEL == BUILD_MODEL_VRHD_SECURITY || BUILD_MODEL == BUILD_MODEL_VRHD_SECURITY_REAR_1CH)
-#define __FW_VERSION__			"1.3.3"
+#elif (BUILD_MODEL == BUILD_MODEL_VRHD_SECURITY)	//NV2HD, VRHD Standard
+#define __FW_VERSION__					"1.3.4"
+#define DA_FIRMWARE_VERSION				"VRSE/" __FW_VERSION__
 
- #if BUILD_MODEL == BUILD_MODEL_VRHD_SECURITY
-	#define DA_FIRMWARE_VERSION	"VRSE/" __FW_VERSION__
+#define DEF_VRSE_SECURITY_FILE_EXT		"fvfs"		//firstview file system
+#define DEF_VRSE_FVFS_HEADER			"FVFS   CDR MOVIE"
+#define ENABLE_AVI_SCRAMBLING 			1			//0 is avi file
+//#define AVI_SCRAMBLE_CODES    			"0x6461746563680635b5695b47d888d1590934138834535c9f63b6907357e724eb"
+#define AVI_SCRAMBLE_CODES    			"0x000000"
+
+#define DEF_LOW_FRONT_720P
+#define DEF_30FIX_FRAME					0
+#define REAR_1080P 						0
+#define REAR_NTSC						0  	// 0 is auto detect
+#define ENABLE_DATA_LOG	 				1
+#define ENABLE_AHD						//Master Updata RearCAM Default
+
+#elif (BUILD_MODEL == BUILD_MODEL_VRHD_SECURITY_FUTABA || BUILD_MODEL == BUILD_MODEL_VRHD_SECURITY_REAR_1CH)	//Futaba safe monitoring
+#define __FW_VERSION__					"2.0.0"
+
+ #if BUILD_MODEL == BUILD_MODEL_VRHD_SECURITY_FUTABA
+	#define DA_FIRMWARE_VERSION			"VRSE/" __FW_VERSION__
  #else
- 	#define DA_FIRMWARE_VERSION	"VRSE/1CH_" __FW_VERSION__
+ 	#define DA_FIRMWARE_VERSION			"VRSE/1CH_" __FW_VERSION__
 	#define DEF_REAR_CAMERA_ONLY
  #endif
 
 #define DEF_VRSE_SECURITY_FILE_EXT		"fvfs"		//firstview file system
-#define DEF_VRSE_FVFS_HEADER		"FVFS   CDR MOVIE"
-#define ENABLE_AVI_SCRAMBLING 1
-//#define AVI_SCRAMBLE_CODES    "0x6461746563680635b5695b47d888d1590934138834535c9f63b6907357e724eb"
-#define AVI_SCRAMBLE_CODES    "0x000000"
+#define DEF_VRSE_FVFS_HEADER			"FVFS   CDR MOVIE"
+#define ENABLE_AVI_SCRAMBLING 			1			//0 is avi file
+//#define AVI_SCRAMBLE_CODES    			"0x6461746563680635b5695b47d888d1590934138834535c9f63b6907357e724eb"
+#define AVI_SCRAMBLE_CODES    			"0x000000"
 
 #define DEF_LOW_FRONT_720P
-#define DEF_30FIX_FRAME				0
-#define REAR_1080P 							0
-#define REAR_NTSC								0  // 0 is auto detect
-#define ENABLE_DATA_LOG	 			1
+#define DEF_30FIX_FRAME					0
+#define REAR_1080P 						0
+#define REAR_NTSC						0  // 0 is auto detect
+#define ENABLE_DATA_LOG	 				1
+#define ENABLE_AHD						//Master Updata RearCAM Default
 /////////////////////////////////////////// Below for Futaba
-//#define DEF_SAFE_DRIVING_MONITORING		//오사카 가스향에서 사용
-//#define DEF_OSAKAGAS_DATALOG
-//#define DEF_OSAKAGAS_USERDATA_1SEC		//Osaks Gas 1초에 1번 저장
+//#define Horiba							// SD 동시사용
+#define DEF_SAFE_DRIVING_MONITORING		//오사카 가스향에서 사용
+#define DEF_OSAKAGAS_DATALOG
+#define DEF_OSAKAGAS_USERDATA_1SEC		//Osaks Gas 1초에 1번 저장
 //#define ENABLE_DATA_LOG_UNI				// 농공대학
 
 #elif (BUILD_MODEL == BUILD_MODEL_VRHD_V1V2)
-#define __FW_VERSION__			"0.0.27"
-#define	DA_FIRMWARE_VERSION	"VRVX/" __FW_VERSION__
+#define __FW_VERSION__					"0.0.27"
+#define	DA_FIRMWARE_VERSION				"VRVX/" __FW_VERSION__
 
-#define ENABLE_AVI_SCRAMBLING 0
+#define ENABLE_AVI_SCRAMBLING 			0
 
 #define DEF_LOW_FRONT_720P
  #define DEF_30FIX_FRAME				0
-#define REAR_1080P 							0
-#define REAR_NTSC								0
-#define ENABLE_DATA_LOG	 			1
+#define REAR_1080P 						0
+#define REAR_NTSC						0
+#define ENABLE_DATA_LOG	 				1
 
 
 #elif (BUILD_MODEL == BUILD_MODEL_VRHD_220S)
-#define __FW_VERSION__			"1.3.0"
+#define __FW_VERSION__					"1.3.0"
 
-#define DA_FIRMWARE_VERSION	"VRSS/" __FW_VERSION__
+#define DA_FIRMWARE_VERSION				"VRSS/" __FW_VERSION__
 
 
 #define DEF_VRSE_SECURITY_FILE_EXT		"fvfs"		//firstview file system
-#define DEF_VRSE_FVFS_HEADER		"FVFS   CDR MOVIE"
-#define ENABLE_AVI_SCRAMBLING 1
-//#define AVI_SCRAMBLE_CODES    "0x6461746563680635b5695b47d888d1590934138834535c9f63b6907357e724eb"
-#define AVI_SCRAMBLE_CODES    "0x000000"
+#define DEF_VRSE_FVFS_HEADER			"FVFS   CDR MOVIE"
+#define ENABLE_AVI_SCRAMBLING 			1
+//#define AVI_SCRAMBLE_CODES    			"0x6461746563680635b5695b47d888d1590934138834535c9f63b6907357e724eb"
+#define AVI_SCRAMBLE_CODES    			"0x000000"
 
 #define DEF_LOW_FRONT_720P
-#define DEF_30FIX_FRAME				0
-#define REAR_1080P 							0
-#define REAR_NTSC								0  // 0 is auto detect
-#define ENABLE_DATA_LOG	 			1
+#define DEF_30FIX_FRAME					0
+#define REAR_1080P 						0
+#define REAR_NTSC						0  // 0 is auto detect
+#define ENABLE_DATA_LOG	 				1
 
 
 #define DEF_DO_NOT_USE_DIGITAL_IO
 
 #undef USE_DA_PULSE
-#define USE_DA_PULSE  0
+#define USE_DA_PULSE  					0
 #endif
 
 
 //////////////////////////////////////////////////////
 //Revision Note
 /*
+VRHD 01.03_240611
+ 1) 급핸들 default = 50 으로 수정
+
+VRSE 2.0.0_240611
+ 1) 급핸들 default = 50 으로 수정
+ 2) Futaba safe monotoring 버전 수정
+
+VRSE 1.3.3_240206
+ 1) Horiba SD카드 동시 사용 
+ 2) TEMP Folder & tmp file 30개 생성
+ 3) Futaba 기능 적용
+
+VRHD 01.02_240118
+ 1) MMB 표준사양(SOS 기능 삭제)
+ 2) setup.xml default 생성(CloudServerName, CloudServerPort, CloudServerPollingPort)
+
 VRHD 02.02_231207
  1) SOS BT 동작 기존과 동일
  2) setup.xml default 항목추가(CloudServerName, CloudServerPort, CloudServerPollingPort)
