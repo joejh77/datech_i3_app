@@ -912,7 +912,7 @@ BOOL CConfigText::CfgDefaultSet(LPST_CFG_DAVIEW pCfg)
   //급핸들 : 차속×각도÷10=26 이상
   pCfg->iSuddenAccelerationSensi = 12;
 	pCfg->iSuddenDeaccelerationSensi = 12;
-	pCfg->iRapidRotationSensi = 26;
+	pCfg->iRapidRotationSensi = 50;		//26=>50 default 수정_240611
  #else
 	pCfg->iSuddenAccelerationSensi = 5;
 	pCfg->iSuddenDeaccelerationSensi = 5;
